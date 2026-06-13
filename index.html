@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一週看漲 - 股票技術分析系統</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a class="navbar-brand" href="#">
+                <span class="brand-icon">📈</span>
+                <span class="brand-text">一週看漲</span>
+            </a>
+            <button class="navbar-toggler" id="navbarToggler" aria-label="選單">
+                <span class="hamburger"></span>
+            </button>
+            <div class="navbar-menu" id="navbarMenu">
+                <ul class="nav-links">
+                    <li><a href="#dashboard" class="nav-link active">儀表板</a></li>
+                    <li><a href="#recommendations" class="nav-link">推薦列表</a></li>
+                    <li><a href="#news" class="nav-link">新聞情緒</a></li>
+                    <li><a href="#chart" class="nav-link">個股分析</a></li>
+                </ul>
+                <div class="nav-time">
+                    <span class="time-label">更新時間:</span>
+                    <span id="updateTime">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Market Summary -->
+        <section id="dashboard">
+            <h2 class="section-title">
+                <span>📊</span> 市場概況
+            </h2>
+            <div class="dashboard-grid">
+                <div class="stat-card positive">
+                    <span class="stat-card__label">上漲家數</span>
+                    <span class="stat-card__value" id="gainers">--</span>
+                </div>
+                <div class="stat-card negative">
+                    <span class="stat-card__label">下跌家數</span>
+                    <span class="stat-card__value" id="losers">--</span>
+                </div>
+                <div class="stat-card info">
+                    <span class="stat-card__label">推薦買入</span>
+                    <span class="stat-card__value" id="buySignals">--</span>
+                </div>
+                <div class="stat-card warning">
+                    <span class="stat-card__label">平均信心度</span>
+                    <span class="stat-card__value" id="avgConfidence">--%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stock Recommendations Table -->
+        <section id="recommendations">
+            <div class="table-card">
+                <div class="table-header">
+                    <h5>
+                        <span>⭐</span> 一週看漲股票推薦
+                    </h5>
+                    <p class="table-subtitle">依據技術指標 + 新聞情緒綜合評分</p>
+                </div>
+                <div class="table-container">
+                    <table class="stock-table">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>代碼</th>
+                                <th>名稱</th>
+                                <th>價格</th>
+                                <th>漲跌</th>
+                                <th>均線</th>
+                                <th>MACD</th>
+                                <th>RSI</th>
+                                <th>KDJ</th>
+                                <th>量比</th>
+                                <th>評分</th>
+                                <th>信心度</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockTableBody">
+                            <tr>
+                                <td colspan="12" class="loading">
+                                    <div class="loading-spinner"></div>
+                                    載入中...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Two Column Layout: News + Chart -->
+        <div class="content-grid">
+            <!-- News Sentiment -->
+            <section id="news">
+                <div class="news-card">
+                    <div class="news-header">
+                        <h5>
+                            <span>📰</span> 新聞情緒分析
+                        </h5>
+                    </div>
+                    <div class="news-body" id="newsFeed">
+                        <div class="loading">載入中...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- K-Line Chart -->
+            <section id="chart">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h5>
+                            <span>📈</span>
+                            <span id="chartTitle">請選擇股票查看K線圖</span>
+                        </h5>
+                        <select id="stockSelector" class="stock-select">
+                            <option value="">選擇股票</option>
+                        </select>
+                    </div>
+                    <div class="chart-body">
+                        <div class="chart-canvas-container">
+                            <canvas id="klineChart"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <span class="legend-item">
+                                <span class="legend-dot" style="background: #2962ff;"></span>
+                                收盤價
+                            </span>
+                            <span class="legend-item">
+                                <span class="legend-dot" style="background: #00bcd4;"></span>
+                                MA5
+                            </span>
+                            <span class="legend-item">
+                                <span class="legend-dot" style="background: #e3a507;"></span>
+                                MA10
+                            </span>
+                            <span class="legend-item">
+                                <span class="legend-dot" style="background: #7b61ff;"></span>
+                                MA20
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Technical Indicators Panel -->
+        <section id="indicators">
+            <div class="indicators-card">
+                <div class="indicators-header">
+                    <h5>
+                        <span>⚙️</span> 技術指標說明
+                    </h5>
+                </div>
+                <div class="indicators-body">
+                    <div class="indicators-grid">
+                        <div class="indicator-box">
+                            <div class="indicator-box__title">MA 移動平均線</div>
+                            <div class="indicator-box__desc">
+                                MA5 &gt; MA10 &gt; MA20 為多頭排列，本系統以此判斷趨勢方向。黃金交叉為買進信號，死亡交叉為賣出信號。
+                            </div>
+                        </div>
+                        <div class="indicator-box">
+                            <div class="indicator-box__title">KD 隨機指標</div>
+                            <div class="indicator-box__desc">
+                                K值 &lt; 30 超賣區域出現黃金交叉為買進時機。K值 &gt; 80 超買區域出現死亡交叉需注意反轉風險。
+                            </div>
+                        </div>
+                        <div class="indicator-box">
+                            <div class="indicator-box__title">MACD 指數平滑異同</div>
+                            <div class="indicator-box__desc">
+                                DIF線由下往上穿越Signal線為黃金交叉（買進），由上往下為死亡交叉（賣出）。柱狀體由負轉正表多頭動能增強。
+                            </div>
+                        </div>
+                        <div class="indicator-box">
+                            <div class="indicator-box__title">RSI 相對強弱指標</div>
+                            <div class="indicator-box__desc">
+                                RSI &lt; 30 為超賣區， &gt; 70 為超買區。本系統篩選 RSI 40-65 區間股票，避開過熱或過冷行情。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stock Detail Modal -->
+        <div class="modal-overlay" id="stockModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="modalTitle">股票分析</h5>
+                    <button class="modal-close" id="modalClose">×</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>一週看漲 - 股票技術分析系統 | 僅供參考，不構成投資建議</p>
+        <p class="footer-note">本系統結合技術指標與新聞情緒分析，幫助投資人篩選強勢股</p>
+    </footer>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Data JS -->
+    <script src="data.js"></script>
+    <!-- App JS -->
+    <script>
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            initNavbar();
+            initStockSelector();
+            renderStockTable();
+            renderNews();
+            updateMarketSummary();
+            initChart();
+            initModal();
+        });
+
+        // Navbar toggle for mobile
+        function initNavbar() {
+            const toggler = document.getElementById('navbarToggler');
+            const menu = document.getElementById('navbarMenu');
+            toggler.addEventListener('click', function() {
+                menu.classList.toggle('active');
+            });
+        }
+
+        function updateTime() {
+            document.getElementById('updateTime').textContent = new Date().toLocaleTimeString('zh-TW');
+        }
+
+        function initStockSelector() {
+            const selector = document.getElementById('stockSelector');
+            stockData.forEach(stock => {
+                const option = document.createElement('option');
+                option.value = stock.symbol;
+                option.textContent = `${stock.symbol} ${stock.name}`;
+                selector.appendChild(option);
+            });
+            selector.addEventListener('change', function() {
+                if (this.value) {
+                    updateChart(this.value);
+                    document.getElementById('chartTitle').textContent = `${this.value} ${getStockName(this.value)} K線圖`;
+                }
+            });
+        }
+
+        function getStockName(symbol) {
+            const stock = stockData.find(s => s.symbol === symbol);
+            return stock ? stock.name : '';
+        }
+
+        function renderStockTable() {
+            const tbody = document.getElementById('stockTableBody');
+            const sortedStocks = [...stockData].sort((a, b) => b.compositeScore - a.compositeScore);
+            
+            tbody.innerHTML = sortedStocks.map((stock, index) => {
+                const ind = stock.indicators;
+                const isPositive = stock.change >= 0;
+                return `
+                <tr onclick="showStockDetail('${stock.symbol}')" style="cursor:pointer;">
+                    <td><span class="badge ${stock.confidence >= 80 ? 'badge-success' : stock.confidence >= 70 ? 'badge-primary' : 'badge-secondary'}">${index + 1}</span></td>
+                    <td><strong>${stock.symbol}</strong></td>
+                    <td>${stock.name}</td>
+                    <td>${stock.price.toFixed(2)}</td>
+                    <td class="${isPositive ? 'text-success' : 'text-danger'}">
+                        ${isPositive ? '▲' : '▼'} ${isPositive ? '+' : ''}${stock.change.toFixed(2)}%
+                    </td>
+                    <td><span class="badge ${ind.maStatus === '多頭排列' ? 'badge-success' : 'badge-warning'}">${ind.maStatus}</span></td>
+                    <td><span class="badge ${ind.macdSignal === '黃金交叉' ? 'badge-success' : 'badge-info'}">${ind.macdSignal}</span></td>
+                    <td><span class="badge ${ind.rsi >= 40 && ind.rsi <= 65 ? 'badge-success' : 'badge-warning'}">${ind.rsi}</span></td>
+                    <td><span class="badge ${ind.kdStatus === '低檔黃金交叉' ? 'badge-success' : 'badge-secondary'}">${ind.kdStatus}</span></td>
+                    <td><span class="badge ${ind.volumeRatio >= 1.5 ? 'badge-success' : ind.volumeRatio >= 1.2 ? 'badge-warning' : 'badge-secondary'}">${ind.volumeRatio}x</span></td>
+                    <td><strong class="text-primary">${stock.compositeScore.toFixed(1)}</strong></td>
+                    <td>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill ${stock.confidence >= 80 ? 'fill-success' : stock.confidence >= 70 ? 'fill-primary' : 'fill-warning'}" style="width: ${stock.confidence}%">
+                                ${stock.confidence}%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function renderNews() {
+            const container = document.getElementById('newsFeed');
+            container.innerHTML = newsData.map(news => `
+                <div class="news-item news-item--${news.sentiment}">
+                    <div class="news-item__header">
+                        <span class="news-sentiment sentiment-${news.sentiment}">
+                            ${news.sentiment === 'positive' ? '▲ 利多' : news.sentiment === 'negative' ? '▼ 利空' : '― 中性'}
+                        </span>
+                        <span class="news-time">${news.time}</span>
+                    </div>
+                    <p class="news-item__title">${news.title}</p>
+                    <div class="news-item__stocks">
+                        相關: ${news.relatedStocks.join(', ')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateMarketSummary() {
+            const gainers = stockData.filter(s => s.change > 0).length;
+            const losers = stockData.filter(s => s.change < 0).length;
+            const buySignals = stockData.filter(s => s.compositeScore > 70).length;
+            const avgConfidence = Math.round(stockData.reduce((sum, s) => sum + s.confidence, 0) / stockData.length);
+            
+            document.getElementById('gainers').textContent = gainers;
+            document.getElementById('losers').textContent = losers;
+            document.getElementById('buySignals').textContent = buySignals;
+            document.getElementById('avgConfidence').textContent = avgConfidence + '%';
+        }
+
+        // Chart setup
+        let klineChart = null;
+        function initChart() {
+            const ctx = document.getElementById('klineChart').getContext('2d');
+            klineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '收盤價',
+                            data: [],
+                            borderColor: '#2962ff',
+                            backgroundColor: 'rgba(41, 98, 255, 0.1)',
+                            fill: true,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'MA5',
+                            data: [],
+                            borderColor: '#00bcd4',
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'MA10',
+                            data: [],
+                            borderColor: '#e3a507',
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'MA20',
+                            data: [],
+                            borderColor: '#7b61ff',
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(128, 128, 128, 0.1)' } },
+                        y: { grid: { color: 'rgba(128, 128, 128, 0.1)' } }
+                    }
+                }
+            });
+        }
+
+        function updateChart(symbol) {
+            const stock = stockData.find(s => s.symbol === symbol);
+            if (!stock || !stock.chartData) return;
+            klineChart.data.labels = stock.chartData.dates;
+            klineChart.data.datasets[0].data = stock.chartData.close;
+            klineChart.data.datasets[1].data = stock.chartData.ma5;
+            klineChart.data.datasets[2].data = stock.chartData.ma10;
+            klineChart.data.datasets[3].data = stock.chartData.ma20;
+            klineChart.update();
+        }
+
+        // Modal functions
+        function initModal() {
+            const modal = document.getElementById('stockModal');
+            const closeBtn = document.getElementById('modalClose');
+            closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        }
+
+        function showStockDetail(symbol) {
+            const stock = stockData.find(s => s.symbol === symbol);
+            if (!stock) return;
+            
+            const modal = document.getElementById('stockModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            title.textContent = `${stock.symbol} ${stock.name} 詳細分析`;
+            body.innerHTML = `
+                <div class="detail-section">
+                    <h6>價格資訊</h6>
+                    <p>目前價格: <strong>${stock.price.toFixed(2)}</strong></p>
+                    <p>漲跌: <span class="${stock.change >= 0 ? 'text-success' : 'text-danger'}">${stock.change >= 0 ? '+' : ''}${stock.change.toFixed(2)}%</span></p>
+                </div>
+                <div class="detail-section">
+                    <h6>技術指標</h6>
+                    <p>均線狀態: <span class="badge badge-${stock.indicators.maStatus === '多頭排列' ? 'success' : 'warning'}">${stock.indicators.maStatus}</span></p>
+                    <p>MACD: <span class="badge badge-${stock.indicators.macdSignal === '黃金交叉' ? 'success' : 'info'}">${stock.indicators.macdSignal}</span></p>
+                    <p>RSI: ${stock.indicators.rsi}</p>
+                    <p>KDJ: ${stock.indicators.kdStatus}</p>
+                    <p>量比: ${stock.indicators.volumeRatio}x</p>
+                </div>
+                <div class="detail-section">
+                    <h6>評分與信心度</h6>
+                    <p>綜合評分: <strong class="text-primary">${stock.compositeScore.toFixed(1)}</strong></p>
+                    <p>信心度: <strong>${stock.confidence}%</strong></p>
+                </div>
+                <div class="detail-section">
+                    <h6>推薦理由</h6>
+                    <p>${stock.reason}</p>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+    </script>
+</body>
+</html>
